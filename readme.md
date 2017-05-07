@@ -1,8 +1,3 @@
-<style>
-    img[alt=Architecture] { width: 100%; max-width: 700px; }
-    img[alt=Dummy_pose] { width: 100%; max-width: 400px; }
-</style>
-
 # DNN for gait recognition in TensorFlow
 
 In this project you can find implementation of deep neural network for **people identification from video** by the characteristic of their **gait**. The processing is very robust against various covariate factors such as *clothing*, *carrying conditions*, *shoe types* and so on. Feel free to use this network in your project or extend it in some way.
@@ -67,6 +62,7 @@ coords_y, coords_x, probabilities = net_pose.joint_positions(input_images)
 ```
 where `coords_y`, `coords_x` and `probabilities` stores estimated joint coordinates in **Y axis**, **X axis** and **probability** of each estimate, respectively. All these tensors have shape `(BATCH, 16)`, where the second dimension is the body joint. The order of the body joints in the second dimension is as follows:
 
+```
 1. right ankle 
 2. right knee 
 3. right hip
@@ -83,6 +79,7 @@ where `coords_y`, `coords_x` and `probabilities` stores estimated joint coordina
 14. left shoulder
 15. left elbow
 16. left wrist
+```
 
 If you want to get raw heat maps that maps dense probability distribution for each pixel in image, instead of method `joint_positions` use method `heat_maps` - you should get heat maps with shape `(BATCH, HEIGHT, WIDTH, 16)`. 
 
