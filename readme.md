@@ -19,8 +19,6 @@ The network takes *raw RGB video frames* of walker as an input and produces one-
 
 Responsibility of the second sub-network - `GaitNN` is the further processing of the generated spatial features into one-dimensional **pose descriptors** with the use of a residual convolutional network. **Temporal features** are then extracted across these *pose descriptors* with the use of the multilayer recurrent cells - **LSTM** or **GRU**. All temporal features are finally aggregated with **Average temporal pooling** into one-dimensional **identification vectors** with discriminatory properties. As already mentioned in the text above, the human identification vectors are linearly separable with each other and can therefore be classified with e.g. **linear SVM**.
 
-More detailed information can be found in my thesis [] *(written in Slovak)*. 
-
 ![Architecture](images/architecture.jpg)
 
 ## Gait recognition
