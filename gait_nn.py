@@ -38,10 +38,10 @@ class GaitNN(object):
                 dtype = tf.int32,
                 shape = [],
                 name = 'desired_person')
-    
+
             self.desired_person_one_hot = tf.one_hot(self.desired_person, num_of_persons, dtype = tf.float32)
             self.loss = self._sigm_ce_loss()
-            
+
             self.global_step = tf.Variable(0, name = 'global_step', trainable = False)
 
             self.learning_rate = tf.placeholder(
@@ -67,27 +67,28 @@ class GaitNN(object):
                                                  )
 
         self.sess = tf.Session()
-        self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         # Initialize summaries
-        if is_train:
-            logdir = os.path.join(SUMMARY_PATH, self.name, 'train')
-            self.summary_writer = tf.train.SummaryWriter(logdir)
+        if name is not None:
+            if is_train:
+                logdir = os.path.join(SUMMARY_PATH, self.name, 'train')
+                self.summary_writer = tf.train.SummaryWriter(logdir)
 
-            self.ALL_SUMMARIES = tf.merge_all_summaries(KEY_SUMMARIES)
-        else:
-            self.summary_writer_d = {}
-            
-            for t in ['avg', 'n', 'b', 's']:
-                logdir = os.path.join(SUMMARY_PATH, self.name, 'val_%s' % t)
-                self.summary_writer_d[t] = tf.train.SummaryWriter(logdir)
-            
+                self.ALL_SUMMARIES = tf.merge_all_summaries(KEY_SUMMARIES)
+            else:
+                self.summary_writer_d = {}
+
+                for t in ['avg', 'n', 'b', 's']:
+                    logdir = os.path.join(SUMMARY_PATH, self.name, 'val_%s' % t)
+                    self.summary_writer_d[t] = tf.train.SummaryWriter(logdir)
+
         tf.set_random_seed(SEED)
 
     @staticmethod
     def pre_process(inp):
         return inp / 100.0
-    
+
     @staticmethod
     def get_arg_scope(is_training):
         weight_decay_l2 = 0.1
@@ -112,7 +113,7 @@ class GaitNN(object):
                                         normalizer_fn = slim.batch_norm,
                                         normalizer_params = batch_norm_params) as scope:
                         return scope
-    
+
     def _sigm_ce_loss(self):
         ce = tf.nn.softmax_cross_entropy_with_logits(self.network, self.desired_person_one_hot)
         loss = tf.reduce_mean(ce)
@@ -211,19 +212,25 @@ class GaitNN(object):
 
 class GaitNetwork(GaitNN):
     FEATURES = 512
-    
-    def __init__(self, name, num_of_persons, recurrent_unit = 'GRU', rnn_layers = 1,
-                 reuse = False, is_training = True):
+
+    def __init__(self, name = None, num_of_persons = 0, recurrent_unit = 'GRU', rnn_layers = 1,
+                 reuse = False, is_training = False, input_net = None):
         tf.set_random_seed(SEED)
-        
+
+        if num_of_persons <= 0 and is_training:
+            raise Exception('Parameter num_of_persons has to be greater than zero when thaining')
+
         self.num_of_persons = num_of_persons
         self.rnn_layers = rnn_layers
         self.recurrent_unit = recurrent_unit
-        
-        input_tensor = tf.placeholder(
-            dtype = tf.float32,
-            shape = (None, 17, 17, 32),
-            name = 'input_image')
+
+        if input_net is None:
+            input_tensor = tf.placeholder(
+                dtype = tf.float32,
+                shape = (None, 17, 17, 32),
+                name = 'input_image')
+        else:
+            input_tensor = input_net
 
         super().__init__(name, input_tensor, self.FEATURES, num_of_persons, reuse, is_training)
 
@@ -236,7 +243,7 @@ class GaitNetwork(GaitNN):
                     with tf.variable_scope('17x17'):
                         net = layers.convolution2d(net, num_outputs = 256, kernel_size = 1)
                         slim.repeat(net, 3, self.residual_block, ch = 256, ch_inner = 64)
-                        
+
                     with tf.variable_scope('8x8'):
                         net = self.residual_block(net, ch = 512, ch_inner = 64, stride = 2)
                         slim.repeat(net, 2, self.residual_block, ch = 512, ch_inner = 128)
@@ -247,7 +254,7 @@ class GaitNetwork(GaitNN):
 
                         net = layers.convolution2d(net, num_outputs = 256, kernel_size = 1)
                         net = layers.convolution2d(net, num_outputs = 256, kernel_size = 3)
-                    
+
                 with tf.variable_scope('FullyConnected'):
                     # net = tf.reduce_mean(net, [1, 2], name = 'GlobalPool')
                     net = layers.flatten(net)
@@ -258,7 +265,7 @@ class GaitNetwork(GaitNN):
                         'GRU': tf.nn.rnn_cell.GRUCell,
                         'LSTM': tf.nn.rnn_cell.LSTMCell
                     }
-                
+
                     cell = cell_type[self.recurrent_unit](self.FEATURES)
                     cell = tf.nn.rnn_cell.MultiRNNCell([cell] * self.rnn_layers, state_is_tuple = True)
 
@@ -268,7 +275,7 @@ class GaitNetwork(GaitNN):
 
                     # Temporal Avg-Pooling
                     gait_signature = tf.reduce_mean(net, 0)
-                    
+
                 if is_training:
                     net = tf.expand_dims(gait_signature, 0)
                     net = layers.dropout(net, 0.7)

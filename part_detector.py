@@ -7,7 +7,7 @@ def init_model_variables(file_path, trainable = True):
     """
     Initialize all model variables of a given torch model. The torch model pre-trained on MPII or MPII+LSP can be
     downloaded from author's pages: https://www.adrianbulat.com/human-pose-estimation
-    
+
     :param file_path: path to serialized torch model (.th)
     :param trainable: if the loaded variables should be trainable
     """
@@ -84,7 +84,7 @@ def human_pose_resnet(net, reuse = False, training = False):
     :param training: if the variables should be trainable. It has no effect if the 'reuse' param is set to True
     :return: output tensor and dictionary of named endpoints
     """
-    
+
     def batch_normalization(input_net, act_f = None, scope = None):
         return layers.batch_norm(input_net, center = True, scale = True, epsilon = 1e-5,
                                  activation_fn = act_f, is_training = training,
@@ -139,7 +139,7 @@ def human_pose_resnet(net, reuse = False, training = False):
 
         return input_net
 
-    end_points = {}
+    end_points = { }
 
     with tf.variable_scope('HumanPoseResnet', reuse = reuse):
         with tf.variable_scope('Block_0', reuse = reuse):

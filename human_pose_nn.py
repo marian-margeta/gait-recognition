@@ -26,14 +26,15 @@ class HumanPoseNN(object):
     The neural network used for pose estimation.
     """
 
-    def __init__(self, name, heatmap_size, image_size, loss_type = 'SCE', is_training = True):
+    def __init__(self, log_name, heatmap_size, image_size, loss_type = 'SCE', is_training = True):
         tf.set_random_seed(0)
 
-        if loss_type not in {'MSE', 'SCE'}:
+        if loss_type not in { 'MSE', 'SCE' }:
             raise NotImplementedError('Loss function should be either MSE or SCE!')
-        
-        self.name = name
+
+        self.log_name = log_name
         self.heatmap_size = heatmap_size
+        self.image_size = image_size
         self.is_train = is_training
         self.loss_type = loss_type
 
@@ -62,17 +63,17 @@ class HumanPoseNN(object):
             dtype = tf.float32,
             shape = (None, 2, 16),
             name = 'desired_points')
-        
+
         self.network = self.pre_process(self.input_tensor)
         self.network, self.feature_tensor = self.get_network(self.network, is_training)
-        
+
         self.sigm_network = tf.sigmoid(self.network)
         self.smoothed_sigm_network = self._get_gauss_smoothing_net(self.sigm_network, std = 0.7)
 
         self.loss_err = self._get_loss_function(loss_type)
         self.euclidean_dist = self._euclidean_dist_err()
         self.euclidean_dist_per_joint = self._euclidean_dist_per_joint_err()
-        
+
         if is_training:
             self.global_step = tf.Variable(0, name = 'global_step', trainable = False)
 
@@ -89,16 +90,17 @@ class HumanPoseNN(object):
                                                  )
 
         self.sess = tf.Session()
-        self.sess.run(tf.initialize_all_variables())
-        
-        self._init_summaries()
+        self.sess.run(tf.global_variables_initializer())
+
+        if log_name is not None:
+            self._init_summaries()
 
     def _init_summaries(self):
         if self.is_train:
-            logdir = os.path.join(SUMMARY_PATH, self.name, 'train')
+            logdir = os.path.join(SUMMARY_PATH, self.log_name, 'train')
 
-            self.summary_writer = tf.train.SummaryWriter(logdir)
-            self.summary_writer_by_points = [tf.train.SummaryWriter(os.path.join(logdir, 'point_%02d' % i))
+            self.summary_writer = tf.summary.FileWriter(logdir)
+            self.summary_writer_by_points = [tf.summary.FileWriter(os.path.join(logdir, 'point_%02d' % i))
                                              for i in range(16)]
 
             tf.scalar_summary('Average euclidean distance', self.euclidean_dist, collections = [KEY_SUMMARIES])
@@ -112,9 +114,9 @@ class HumanPoseNN(object):
             self.ALL_SUMMARIES = tf.merge_all_summaries(KEY_SUMMARIES)
             self.SUMMARIES_PER_JOINT = [tf.merge_all_summaries(KEY_SUMMARIES_PER_JOINT[i]) for i in range(16)]
         else:
-            logdir = os.path.join(SUMMARY_PATH, self.name, 'test')
-            self.summary_writer = tf.train.SummaryWriter(logdir)
-            
+            logdir = os.path.join(SUMMARY_PATH, self.log_name, 'test')
+            self.summary_writer = tf.summary.FileWriter(logdir)
+
     def _get_loss_function(self, loss_type):
         loss_dict = {
             'MSE': self._loss_mse(),
@@ -193,14 +195,18 @@ class HumanPoseNN(object):
 
         return highest_activation
 
-    def joint_positions(self):
-        highest_activation = tf.reduce_max(self.smoothed_sigm_network, [1, 2])
+    def _joint_positions(self):
+        highest_activation = tf.reduce_max(self.sigm_network, [1, 2])
         x = tf.argmax(tf.reduce_max(self.smoothed_sigm_network, 1), 1)
         y = tf.argmax(tf.reduce_max(self.smoothed_sigm_network, 2), 1)
 
         x = tf.cast(x, tf.float32)
         y = tf.cast(y, tf.float32)
         a = tf.cast(highest_activation, tf.float32)
+
+        scale_coef = (self.image_size / self.heatmap_size)
+        x *= scale_coef
+        y *= scale_coef
 
         out = tf.pack([y, x, a])
 
@@ -215,7 +221,7 @@ class HumanPoseNN(object):
         l2_dist = tf.reduce_sum(l2_dist) / num_of_visible_joints
 
         return l2_dist
-    
+
     def _euclidean_dist_per_joint_err(self):
         # Work only with joints that are presented inside frame
         l2_dist = tf.mul(self.euclidean_distance(), self.inside_box_joints)
@@ -225,7 +231,7 @@ class HumanPoseNN(object):
         err = tf.reduce_sum(l2_dist, 0) / present_joints
 
         return err
-    
+
     def _restore(self, checkpoint_path, variables):
         saver = tf.train.Saver(variables)
         saver.restore(self.sess, checkpoint_path)
@@ -262,8 +268,8 @@ class HumanPoseNN(object):
         })
 
         return out
-    
-    def feed_forward_smoothed(self, x):
+
+    def heat_maps(self, x):
         out = self.sess.run(self.smoothed_sigm_network, feed_dict = {
             self.input_tensor: x
         })
@@ -309,8 +315,8 @@ class HumanPoseNN(object):
 
         return err
 
-    def test_joints(self, x):
-        out = self.sess.run(self.joint_positions(), feed_dict = {
+    def estimate_joints(self, x):
+        out = self.sess.run(self._joint_positions(), feed_dict = {
             self.input_tensor: x
         })
 
@@ -367,7 +373,7 @@ class HumanPoseNN(object):
     @abstractmethod
     def pre_process(self, inp):
         pass
-    
+
     @abstractmethod
     def get_network(self, input_tensor, is_training):
         pass
@@ -382,21 +388,20 @@ class HumanPoseIRNetwork(HumanPoseNN):
     The first part of our network that exposes as an extractor of spatial features. It s derived from
     Inception-Resnet-v2 architecture and modified for generating heatmaps - i.e. dense predictions of body joints.
     """
-    
+
     FEATURES = 32
     IMAGE_SIZE = 299
     HEATMAP_SIZE = 289
     POINT_DIAMETER = 15
     SMOOTH_SIZE = 21
 
-    def __init__(self, name, loss_type = 'SCE', is_training = True):
-        super().__init__(name, self.HEATMAP_SIZE, self.IMAGE_SIZE, loss_type, is_training)
-        
+    def __init__(self, log_name = None, loss_type = 'SCE', is_training = False):
+        super().__init__(log_name, self.HEATMAP_SIZE, self.IMAGE_SIZE, loss_type, is_training)
+
     def pre_process(self, inp):
         return ((inp / 255) - 0.5) * 2.0
 
     def get_network(self, input_tensor, is_training):
-
         # Load pre-trained inception-resnet model
         with slim.arg_scope(inception_resnet_v2_arg_scope(batch_norm_decay = 0.999, weight_decay = 0.0001)):
             net, end_points = inception_resnet_v2(input_tensor, is_training = is_training)
@@ -409,26 +414,26 @@ class HumanPoseIRNetwork(HumanPoseNN):
                                     weights_regularizer = slim.l2_regularizer(weight_decay),
                                     biases_regularizer = slim.l2_regularizer(weight_decay),
                                     activation_fn = None):
-                    tf.histogram_summary('Last_layer/activations', net, [KEY_SUMMARIES])
+                    tf.summary.histogram('Last_layer/activations', net, [KEY_SUMMARIES])
 
                     # Scoring
                     net = slim.dropout(net, 0.7, is_training = is_training, scope = 'Dropout')
                     net = layers.convolution2d(net, num_outputs = self.FEATURES, kernel_size = 1, stride = 1,
                                                scope = 'Scoring_layer')
                     feature = net
-                    tf.histogram_summary('Scoring_layer/activations', net, [KEY_SUMMARIES])
+                    tf.summary.histogram('Scoring_layer/activations', net, [KEY_SUMMARIES])
 
                     # Upsampling
                     net = layers.convolution2d_transpose(net, num_outputs = 16, kernel_size = 17, stride = 17,
                                                          padding = 'VALID', scope = 'Upsampling_layer')
 
-                    tf.histogram_summary('Upsampling_layer/activations', net, [KEY_SUMMARIES])
+                    tf.summary.histogram('Upsampling_layer/activations', net, [KEY_SUMMARIES])
 
             # Smoothing layer - separable gaussian filters
             net = super()._get_gauss_smoothing_net(net, size = self.SMOOTH_SIZE, std = 1.0, kernel_sum = 0.2)
 
             return net, feature
-    
+
     def restore(self, checkpoint_path, is_pre_trained_imagenet_checkpoint = False):
         all_vars = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES, scope = 'InceptionResnetV2')
         if not is_pre_trained_imagenet_checkpoint:
@@ -441,19 +446,19 @@ class HumanPoseIRNetwork(HumanPoseNN):
         all_vars += tf.get_collection(tf.GraphKeys.MODEL_VARIABLES, scope = 'NewInceptionResnetV2/AuxiliaryScoring')
 
         super()._save(checkpoint_path, name, all_vars)
- 
+
     def create_summary_from_weights(self):
         with tf.variable_scope('NewInceptionResnetV2/AuxiliaryScoring', reuse = True):
-            tf.histogram_summary('Scoring_layer/biases', tf.get_variable('Scoring_layer/biases'), [KEY_SUMMARIES])
-            tf.histogram_summary('Upsampling_layer/biases', tf.get_variable('Upsampling_layer/biases'), [KEY_SUMMARIES])
-            tf.histogram_summary('Scoring_layer/weights', tf.get_variable('Scoring_layer/weights'), [KEY_SUMMARIES])
-            tf.histogram_summary('Upsampling_layer/weights', tf.get_variable('Upsampling_layer/weights'),
+            tf.summary.histogram('Scoring_layer/biases', tf.get_variable('Scoring_layer/biases'), [KEY_SUMMARIES])
+            tf.summary.histogram('Upsampling_layer/biases', tf.get_variable('Upsampling_layer/biases'), [KEY_SUMMARIES])
+            tf.summary.histogram('Scoring_layer/weights', tf.get_variable('Scoring_layer/weights'), [KEY_SUMMARIES])
+            tf.summary.histogram('Upsampling_layer/weights', tf.get_variable('Upsampling_layer/weights'),
                                  [KEY_SUMMARIES])
 
         with tf.variable_scope('InceptionResnetV2/AuxLogits', reuse = True):
-            tf.histogram_summary('Last_layer/weights', tf.get_variable('Conv2d_2a_5x5/weights'), [KEY_SUMMARIES])
-            tf.histogram_summary('Last_layer/beta', tf.get_variable('Conv2d_2a_5x5/BatchNorm/beta'), [KEY_SUMMARIES])
-            tf.histogram_summary('Last_layer/moving_mean', tf.get_variable('Conv2d_2a_5x5/BatchNorm/moving_mean'),
+            tf.summary.histogram('Last_layer/weights', tf.get_variable('Conv2d_2a_5x5/weights'), [KEY_SUMMARIES])
+            tf.summary.histogram('Last_layer/beta', tf.get_variable('Conv2d_2a_5x5/BatchNorm/beta'), [KEY_SUMMARIES])
+            tf.summary.histogram('Last_layer/moving_mean', tf.get_variable('Conv2d_2a_5x5/BatchNorm/moving_mean'),
                                  [KEY_SUMMARIES])
 
 
@@ -466,21 +471,21 @@ class PartDetector(HumanPoseNN):
     HEATMAP_SIZE = 256
     POINT_DIAMETER = 11
 
-    def __init__(self, name, init_from_checkpoint = None, loss_type = 'SCE', is_training = True):
+    def __init__(self, log_name = None, init_from_checkpoint = None, loss_type = 'SCE', is_training = False):
         if init_from_checkpoint is not None:
             part_detector.init_model_variables(init_from_checkpoint, is_training)
             self.reuse = True
         else:
             self.reuse = False
-            
-        super().__init__(name, self.HEATMAP_SIZE, self.IMAGE_SIZE, loss_type, is_training)
-        
+
+        super().__init__(log_name, self.HEATMAP_SIZE, self.IMAGE_SIZE, loss_type, is_training)
+
     def pre_process(self, inp):
         return inp / 255
 
     def create_summary_from_weights(self):
         pass
-    
+
     def restore(self, checkpoint_path):
         all_vars = tf.get_collection(tf.GraphKeys.VARIABLES, scope = 'HumanPoseResnet')
         all_vars += tf.get_collection(tf.GraphKeys.MODEL_VARIABLES, scope = 'NewHumanPoseResnet/Scoring')
