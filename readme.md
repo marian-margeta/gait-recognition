@@ -110,13 +110,11 @@ left wrist: 94.24%
 
 ## Pre-trained models
 
-Checkpoints for network `HumanPoseNN`
-
+Checkpoints for network `HumanPoseNN`:<br>
 [Human3.6m.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/Human3.6m.ckpt) - trained on [Human 3.6m](http://vision.imar.ro/human3.6m/description.php), action *walking*<br>
 [MPII+LSP.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/MPII+LSP.ckpt) - trained on [MPII](http://human-pose.mpi-inf.mpg.de) and [LSP](http://www.comp.leeds.ac.uk/mat4saj/lsp.html) database
 
-Checkpoints for network `GaitNN`
-
+Checkpoints for network `GaitNN`:<br>
 [H3.6m-GRU-1.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/H3.6m-GRU-1.ckpt)<br>
 [M+L-GRU-2.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/M+L-GRU-2.ckpt)
 
