@@ -18,9 +18,6 @@ def get_gauss_pdf(sigma):
 
     heatmap = pdf / np.max(pdf)
 
-    # if not is_visible:
-    #     heatmap *= 0.5
-
     return heatmap
 
 
