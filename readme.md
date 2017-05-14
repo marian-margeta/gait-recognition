@@ -108,7 +108,7 @@ left wrist: 94.24%
 
 ## Pre-trained models
 
-### HumanPoseNN - MPII + LSP
+### HumanPoseNN: **MPII + LSP**
 
 **Download**: [MPII+LSP.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/MPII+LSP.ckpt)
 
@@ -122,7 +122,7 @@ The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-po
 #### The sample of incorrectly estimated poses
 ![MPII-bad-fit-human-pose](images/mpii-fit-bad.jpg)
 
-### HumanPoseNN- Human 3.6m
+### HumanPoseNN: **Human 3.6m**
 
 **Download**: [Human3.6m.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/Human3.6m.ckpt) (action *walking*)
 
