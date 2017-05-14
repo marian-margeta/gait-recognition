@@ -108,9 +108,7 @@ left wrist: 94.24%
 
 ## Pre-trained models
 
-### Sub-network HumanPoseNN
-
-#### MPII + LSP
+### HumanPoseNN - MPII + LSP
 
 **Download**: [MPII+LSP.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/MPII+LSP.ckpt)
 
@@ -118,13 +116,13 @@ The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-po
 
 ![MPII+LSP-results](images/mpii-results.jpg)
 
-##### The sample of correctly estimated poses
+#### The sample of correctly estimated poses
 ![MPII-fit-human-pose](images/mpii-fit.jpg)
 
-##### The sample of incorrectly estimated poses
+#### The sample of incorrectly estimated poses
 ![MPII-bad-fit-human-pose](images/mpii-fit-bad.jpg)
 
-#### Human 3.6m
+### HumanPoseNN- Human 3.6m
 
 **Download**: [Human3.6m.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/Human3.6m.ckpt) (action *walking*)
 
@@ -132,7 +130,7 @@ The checkpoint `Human3.6m.ckpt` was trained on the database [Human 3.6m](http://
 
 ![H36m-results](images/h36m-results.jpg)
 
-### Sub-network GaitNN
+### GaitNN
 
 
 We use the same standard TUM GAID experiments as described e.g. in [this paper](https://arxiv.org/abs/1601.06931) (section *Experimental results on TUM GAID*) from F.M. Castro et al. that currently achieve state of the art results. In short, there are 2 main experiments. The goal in the first one is to identify 305 people (100 training, 150 validation, 155 testing) using 10 gait sequences for each person. These sequences catch person in three different covariate conditions: **Normal** walk, walking with **backpack** and walking with **coating shoes**. However, the people on all of these video-sequences wear the same clothing. To address the various clothing conditions, there is the second experiment. The goal of the second experiment is to identify 32 peoples (10 training, 6 validation, 16 testing) using 20 gait sequences for each person - first 10 was taken in January and the other 10 in April. The people have different clothing, usual for respective season. 
