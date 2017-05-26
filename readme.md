@@ -17,7 +17,7 @@ The network takes *raw RGB video frames* of a walker as an input and produces on
 
 **Spatial features** from the video frames are extracted according to the descriptors that involve **pose of the walker**. These descriptors are generated from the first sub-network - `HumanPoseNN` defined in `human_pose_nn` module. `HumanPoseNN` can be also used as a standalone network for regular **2D pose estimation problem** from still images (for more info see [this section](#pose-estimation)).
 
-Responsibility of the second sub-network - `GaitNN` defined in `gait_nn` module is the further processing of the generated spatial features into one-dimensional **pose descriptors** with the use of a residual convolutional network. **Temporal features** are then extracted across these *pose descriptors* with the use of the multilayer recurrent cells - **LSTM** or **GRU**. All temporal features are finally aggregated with **Average temporal pooling** into one-dimensional **identification vectors** with good discriminatory properties. As already mentioned in the text above, the human identification vectors are linearly separable with each other and can therefore be classified with e.g. **linear SVM**.
+Responsibility of the second sub-network - `GaitNN` defined in `gait_nn` module is the further processing of the generated spatial features into one-dimensional **pose descriptors** with the use of a residual convolutional network. **Temporal features** are then extracted across these *pose descriptors* with the use of the multilayer recurrent cells - **LSTM** or **GRU**. All temporal features are finally aggregated with **Average temporal pooling** into one-dimensional **identification vector** with good discriminatory properties. As already mentioned in the text above, the human identification vectors are linearly separable with each other and can therefore be classified with e.g. **linear SVM**.
 
 ![Architecture](images/architecture.jpg)
 
@@ -77,11 +77,11 @@ where `coords_y`, `coords_x` and `probabilities` stores estimated joint coordina
 16. left wrist
 ```
 
-If you want to get raw heat maps that maps dense probability distribution for each pixel in image, use method `heat_maps` instead of method `joint_positions`. This method returns heat maps with shape `(BATCH, HEIGHT, WIDTH, 16)`. 
+If you want to get raw heat-maps mapping dense probability distribution for each pixel in image, use method `heat_maps` instead of method `joint_positions`. This method returns heat maps with shape `(BATCH, HEIGHT, WIDTH, 16)`. 
 
 #### Dummy pose estimation
 
-If you the script `dummy_pose_estimation.py`, the pose of a human in the dummy image */images/dummy.jpg* will be estimated and displayed in a new-created image - */images/dummy_pose.jpg*. For doing this you must have the `matplotlib` package installed and have pre-trained model `MPII+LSP` stored in */models/MPII+LSP.ckpt* - for getting pre-trained models check the next section. The generated image in */images/dummy_pose.jpg* should look like this one:
+If you run the script `dummy_pose_estimation.py`, the pose of a human in the dummy image */images/dummy.jpg* will be estimated and displayed in a new-created image */images/dummy_pose.jpg*. For doing this you must have the `matplotlib` package installed and have pre-trained model `MPII+LSP` stored in */models/MPII+LSP.ckpt* - for getting pre-trained models check the next section. The generated image in */images/dummy_pose.jpg* should look like this one:
 
 ![Dummy_pose](images/dummy_pose_gt.jpg)
 
