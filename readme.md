@@ -135,6 +135,8 @@ The checkpoint `Human3.6m.ckpt` was trained on the database [Human 3.6m](http://
 
 We use the same standard TUM GAID experiments as described e.g. in [this paper](https://arxiv.org/abs/1601.06931) (section *Experimental results on TUM GAID*) from F.M. Castro et al. that currently achieve state of the art results. In short, there are 2 main experiments. The goal in the first one is to identify 305 people (100 training, 150 validation, 155 testing) using 10 gait sequences for each person. These sequences catch person in three different covariate conditions: **Normal** walk, walking with **backpack** and walking with **coating shoes**. However, the people on all of these video-sequences wear the same clothing. To address the various clothing conditions, there is the second experiment. The goal of the second experiment is to identify 32 peoples (10 training, 6 validation, 16 testing) using 20 gait sequences for each person - first 10 was taken in January and the other 10 in April. The people have different clothing, usual for respective season. 
 
+![gait-time-ellapsed](images/time-elapsed.png)
+
 The best performing model on the first experiment is `H3.6m-GRU-1` and on the second is `M+L-GRU-2`. The graphs bellow compares the performance of these models with already mentioned state of the art model [PFM](https://arxiv.org/abs/1601.06931) from F.M. Castro et al. The model `H3.6m-GRU-1` was trained only on the first experiment and on the second graph there is shown, how this model works on the validation set of the second experiment. As you can see, both models outperform PFM in the second experiment with a large margin. It means that these models are much more robust against clothing and time elapsed factors. 
 
 ![Gait-experiment-1](images/ex1.jpg)
