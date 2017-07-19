@@ -13,9 +13,9 @@ The code was written in `Python 3.5`, but it is probably also compatible with ot
 
 ## Basic information about architecture
 
-The network takes *raw RGB video frames* of a walker as an input and produces one-dimensional vector - **gait descriptor** that exposes as an identification vector. The identification vectors from gaits of each two different people should be **linearly separable**. Whole network consists of two sub-networks connected in cascade - `HumanPoseNN` and `GaitNN`.
+The network takes *raw RGB video frames* of a pedestrian as an input and produces one-dimensional vector - **gait descriptor** that exposes as an identification vector. The identification vectors from gaits of each two different people should be **linearly separable**. Whole network consists of two sub-networks connected in cascade - `HumanPoseNN` and `GaitNN`.
 
-**Spatial features** from the video frames are extracted according to the descriptors that involve **pose of the walker**. These descriptors are generated from the first sub-network - `HumanPoseNN` defined in `human_pose_nn` module. `HumanPoseNN` can be also used as a standalone network for regular **2D pose estimation problem** from still images (for more info see [this section](#pose-estimation)).
+**Spatial features** from the video frames are extracted according to the descriptors that involve **pose of the pedestrian**. These descriptors are generated from the first sub-network - `HumanPoseNN` defined in `human_pose_nn` module. `HumanPoseNN` can be also used as a standalone network for regular **2D pose estimation problem** from still images (for more info see [this section](#pose-estimation)).
 
 Responsibility of the second sub-network - `GaitNN` defined in `gait_nn` module is the further processing of the generated spatial features into one-dimensional **pose descriptors** with the use of a residual convolutional network. **Temporal features** are then extracted across these *pose descriptors* with the use of the multilayer recurrent cells - **LSTM** or **GRU**. All temporal features are finally aggregated with **Average temporal pooling** into one-dimensional **identification vector** with good discriminatory properties. As already mentioned in the text above, the human identification vectors are linearly separable with each other and can therefore be classified with e.g. **linear SVM**.
 
