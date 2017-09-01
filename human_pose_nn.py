@@ -170,7 +170,7 @@ class HumanPoseNN(object):
         loss = tf.reduce_sum(loss_err, [1, 2])
 
         # Stop error propagation of joints that are not presented
-        loss = tf.mul(loss, self.present_joints)
+        loss = tf.multiply(loss, self.present_joints)
 
         # Compute average loss of presented joints
         num_of_visible_joints = tf.reduce_sum(self.present_joints)
@@ -185,7 +185,7 @@ class HumanPoseNN(object):
         return loss
 
     def _loss_cross_entropy(self):
-        ce = tf.nn.sigmoid_cross_entropy_with_logits(self.network, self.desired_heatmap)
+        ce = tf.nn.sigmoid_cross_entropy_with_logits(logits = self.network, labels = self.desired_heatmap)
         loss = self._adjust_loss(ce)
 
         return loss
@@ -208,13 +208,13 @@ class HumanPoseNN(object):
         x *= scale_coef
         y *= scale_coef
 
-        out = tf.pack([y, x, a])
+        out = tf.stack([y, x, a])
 
         return out
 
     def _euclidean_dist_err(self):
         # Work only with joints that are presented inside frame
-        l2_dist = tf.mul(self.euclidean_distance(), self.inside_box_joints)
+        l2_dist = tf.multiply(self.euclidean_distance(), self.inside_box_joints)
 
         # Compute average loss of presented joints
         num_of_visible_joints = tf.reduce_sum(self.inside_box_joints)
@@ -224,7 +224,7 @@ class HumanPoseNN(object):
 
     def _euclidean_dist_per_joint_err(self):
         # Work only with joints that are presented inside frame
-        l2_dist = tf.mul(self.euclidean_distance(), self.inside_box_joints)
+        l2_dist = tf.multiply(self.euclidean_distance(), self.inside_box_joints)
 
         # Average euclidean distance of presented joints
         present_joints = tf.reduce_sum(self.inside_box_joints, 0)

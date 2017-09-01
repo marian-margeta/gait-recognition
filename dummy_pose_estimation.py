@@ -7,7 +7,7 @@ from scipy.misc import imresize, imread
 from human_pose_nn import HumanPoseIRNetwork
 
 net_pose = HumanPoseIRNetwork()
-net_pose.restore('../Thesis_solution/models/MPII+LSP.ckpt')
+net_pose.restore('models/MPII+LSP.ckpt')
 
 img = imread('images/dummy.jpg')
 img = imresize(img, [299, 299])

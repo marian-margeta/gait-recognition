@@ -8,7 +8,7 @@ The code was written in `Python 3.5`, but it is probably also compatible with ot
 
 ### Python packages
 
-- `TensorFlow 1.0` - [how to install](https://www.tensorflow.org/install/)
+- `TensorFlow 1.3` - [how to install](https://www.tensorflow.org/install/) (however, some parts of code may be compatible with lower version, report an issue if you would have any problems.)
 - `numpy`, `scipy`, `PIL`
 
 ## Basic information about architecture

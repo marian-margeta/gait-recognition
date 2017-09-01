@@ -115,7 +115,7 @@ class GaitNN(object):
                         return scope
 
     def _sigm_ce_loss(self):
-        ce = tf.nn.softmax_cross_entropy_with_logits(self.network, self.desired_person_one_hot)
+        ce = tf.nn.softmax_cross_entropy_with_logits(logits = self.network, labels = self.desired_person_one_hot)
         loss = tf.reduce_mean(ce)
 
         return loss
