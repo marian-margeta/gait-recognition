@@ -143,8 +143,8 @@ The best performing model on the first experiment is `H3.6m-GRU-1` and on the se
 ![Gait-experiment-2](images/ex2.jpg)
 
 **Download**:<br>
-[H3.6m-GRU-1.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/H3.6m-GRU-1.ckpt)<br>
-[M+L-GRU-2.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/M+L-GRU-2.ckpt)
+[H3.6m-GRU-1.ckpt](models/H3.6m-GRU-1.ckpt)<br>
+[M+L-GRU-2.ckpt](models/M+L-GRU-2.ckpt)
 
 The name describe used architecture (model-RNNcell-layers), so e.g. checkpoint `H3.6m-GRU-1.ckpt` should be loaded in this way:
 ```python
