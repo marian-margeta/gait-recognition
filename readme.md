@@ -110,7 +110,7 @@ left wrist: 94.24%
 
 ### HumanPoseNN: **MPII + LSP**
 
-**Download**: [MPII+LSP.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/MPII+LSP.ckpt)
+**Download**: [MPII+LSP.ckpt](https://drive.google.com/file/d/1bNoZkuI0TCqf_DV613SOAng3p6Y0Si6a/view?usp=sharing)
 
 The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-pose.mpi-inf.mpg.de) and [LSP](http://www.comp.leeds.ac.uk/mat4saj/lsp.html) database. In the graph below you can see the average distance between predicted and desired joints on a **validation set of about 6 000 images**.
 
@@ -124,7 +124,7 @@ The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-po
 
 ### HumanPoseNN: **Human 3.6m**
 
-**Download**: [Human3.6m.ckpt](http://www.st.fmph.uniba.sk/~margeta2/models/Human3.6m.ckpt) (action *walking*)
+**Download**: [Human3.6m.ckpt](https://drive.google.com/file/d/1lup13q5lTzsbrRZafpNbVF8uUyblMpZ3/view?usp=sharing) (action *walking*)
 
 The checkpoint `Human3.6m.ckpt` was trained on the database [Human 3.6m](http://vision.imar.ro/human3.6m/description.php) and only on the **walking** sequences of peoples S1, S6, S7, S8, S9 and S11 (48 sequences). Person S5 (8 sequences) was used for a validation purposes and the average distance between predicted and desired joints is shown in the following graph. As you can see, errors are smaller compared to MPII+LSP. It is because desired poses in Human 3.6m was labeled more precisely using motion capture system, so the a trained network can more accurately estimate the human pose. The second reason is that Human 3.6m sequences are very monotonous and thus human pose estimation is less challenging. 
 
